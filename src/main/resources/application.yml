@@ -19,8 +19,8 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:farmsystemprestudy}
-  access-ttl-seconds: ${JWT_ACCESS_TTL:1800}        # 30?
-  refresh-ttl-seconds: ${JWT_REFRESH_TTL:1209600}   # 14?
+  access-ttl-seconds: ${JWT_ACCESS_TTL:1800}
+  refresh-ttl-seconds: ${JWT_REFRESH_TTL:1209600}
 
 logging:
   level:
