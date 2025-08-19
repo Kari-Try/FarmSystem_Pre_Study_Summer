@@ -18,9 +18,9 @@ spring:
       port: 6379
 
 jwt:
-  secret: 123123
-  access-ttl-seconds: 1800
-  refresh-ttl-seconds: 1209600
+  secret: ${JWT_SECRET:1231232311233212}
+  access-ttl-seconds: ${JWT_ACCESS_TTL:1800}
+  refresh-ttl-seconds: ${JWT_REFRESH_TTL:1209600}
 
 logging:
   level:
