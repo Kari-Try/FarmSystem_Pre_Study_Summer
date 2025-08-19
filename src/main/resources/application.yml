@@ -18,7 +18,7 @@ spring:
       port: 6379
 
 jwt:
-  secret: ${JWT_SECRET:farmsystemprestudy}
+  secret: ${JWT_SECRET:1231232311233212}
   access-ttl-seconds: ${JWT_ACCESS_TTL:1800}
   refresh-ttl-seconds: ${JWT_REFRESH_TTL:1209600}
 
