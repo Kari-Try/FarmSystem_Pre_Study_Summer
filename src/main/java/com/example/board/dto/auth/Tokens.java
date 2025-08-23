@@ -1,4 +1,3 @@
 package com.example.board.dto.auth;
 
-public class Tokens {
-}
+public record Tokens(String accessToken, String refreshToken) {}

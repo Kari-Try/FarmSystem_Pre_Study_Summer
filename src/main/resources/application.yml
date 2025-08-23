@@ -1,27 +1,36 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/board?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8
-    username: board
-    password: boardpw
+    url: ${DB_URL:jdbc:mysql://localhost:3306/preboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8}
+    username: ${DB_USER:board}
+    password: ${DB_PASSWORD:boardpw}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
     open-in-view: false
   data:
     redis:
       host: localhost
       port: 6379
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
 jwt:
-  secret: ${JWT_SECRET:1231232311233212}
+  secret: ${JWT_SECRET:my_super_long_local_dev_secret_please_change_it_soon_1234567890}
   access-ttl-seconds: ${JWT_ACCESS_TTL:1800}
   refresh-ttl-seconds: ${JWT_REFRESH_TTL:1209600}
 
 logging:
   level:
+    org.springframework.security: DEBUG
     org.hibernate.SQL: debug

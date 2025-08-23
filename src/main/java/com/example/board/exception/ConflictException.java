@@ -1,4 +1,4 @@
 package com.example.board.exception;
-
-public class ConflictException {
+public class ConflictException extends RuntimeException {
+    public ConflictException(String msg) { super(msg); }
 }

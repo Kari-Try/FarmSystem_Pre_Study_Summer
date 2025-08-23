@@ -1,4 +1,2 @@
 package com.example.board.exception;
-
-public class UnauthorizedException {
-}
+public class UnauthorizedException extends RuntimeException {}

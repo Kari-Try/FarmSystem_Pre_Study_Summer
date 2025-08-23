@@ -1,4 +1,5 @@
 package com.example.board.dto.auth;
 
-public class RefreshReq {
-}
+import jakarta.validation.constraints.NotBlank;
+
+public record RefreshReq(@NotBlank String refreshToken) {}

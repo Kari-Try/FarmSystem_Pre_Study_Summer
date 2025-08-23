@@ -1,0 +1,52 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    command: ["mysqld","--character-set-server=utf8mb4","--collation-server=utf8mb4_0900_ai_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: preboard
+      MYSQL_USER: board
+      MYSQL_PASSWORD: boardpw
+    ports: ["3306:3306"]
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","127.0.0.1","-uroot","-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    command: ["redis-server","--appendonly","yes"]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+
+    image: preboard-app:latest
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/preboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8"
+      SPRING_DATASOURCE_USERNAME: "board"
+      SPRING_DATASOURCE_PASSWORD: "boardpw"
+      SPRING_DATA_REDIS_HOST: "redis"
+      SPRING_DATA_REDIS_PORT: "6379"
+      JWT_SECRET: "${JWT_SECRET:-my_super_long_local_dev_secret_please_change_it_soon_1234567890}"
+      JWT_ACCESS_TTL: "${JWT_ACCESS_TTL:-1800}"
+      JWT_REFRESH_TTL: "${JWT_REFRESH_TTL:-1209600}"
+
+
+volumes:
+  mysql_data:

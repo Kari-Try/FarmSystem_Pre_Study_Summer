@@ -1,4 +1,9 @@
 package com.example.board.dto.auth;
 
-public class LoginReq {
-}
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record LoginReq(
+        @Email @NotBlank String email,
+        @NotBlank String password
+) {}
