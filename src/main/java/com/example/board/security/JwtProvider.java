@@ -2,21 +2,25 @@
 package com.example.board.security;
 
 import com.example.board.domain.user.User;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtProvider {
@@ -68,11 +72,10 @@ public class JwtProvider {
     }
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
-        String subject = claims.getSubject(); // 보통 email
-
-        List<String> roles = claims.get("roles", List.class);
-        List<SimpleGrantedAuthority> authorities = roles == null ? List.of()
-                : roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new UsernamePasswordAuthenticationToken(subject, null, authorities);
+        String subject = claims.getSubject(); // userId 문자열
+        String role = claims.get("role", String.class); // 단수 키 사용
+        var authorities = (role == null) ? List.of() : List.of(new SimpleGrantedAuthority(role));
+        return new UsernamePasswordAuthenticationToken(subject, null, (Collection<? extends GrantedAuthority>) authorities);
     }
+
 }

@@ -16,6 +16,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final com.example.board.token.TokenStore tokenStore;
     private static final AntPathMatcher PM = new AntPathMatcher();
     private static final String[] SKIP = {
             "/auth/**",
@@ -37,6 +38,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+
+            if (tokenStore.isBlacklisted(token)) {
+                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token blacklisted");
+                return;
+            }
+
             try {
                 var auth = jwtProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(auth);
