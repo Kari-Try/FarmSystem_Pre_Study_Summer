@@ -1,4 +1,3 @@
-// security/JwtProvider.java
 package com.example.board.security;
 
 import com.example.board.domain.user.User;
@@ -13,11 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -72,10 +69,13 @@ public class JwtProvider {
     }
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
-        String subject = claims.getSubject(); // userId 문자열
-        String role = claims.get("role", String.class); // 단수 키 사용
-        var authorities = (role == null) ? List.of() : List.of(new SimpleGrantedAuthority(role));
-        return new UsernamePasswordAuthenticationToken(subject, null, (Collection<? extends GrantedAuthority>) authorities);
+        Long userId = Long.valueOf(claims.getSubject());
+        String role = claims.get("role", String.class);
+        var authorities = (role == null)
+                ? List.<GrantedAuthority>of()
+                : List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        var principal = new UserPrincipal(userId, role);
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
 }
