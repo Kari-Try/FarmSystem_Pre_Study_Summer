@@ -17,5 +17,6 @@ public class PostDetailRes {
     private LocalDateTime updatedAt;
     private int likeCount;
     private int commentCount;
-    private boolean editable;
+    private boolean editable; // 내가 쓴 글인지
+    private boolean liked; // 내가 좋아요 눌렀는지
 }

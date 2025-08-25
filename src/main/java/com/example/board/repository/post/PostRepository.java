@@ -1,9 +1,12 @@
 package com.example.board.repository.post;
 
 import com.example.board.domain.post.Post;
-import com.example.board.domain.post.PostSummaryProjection;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.*;
+import com.example.board.dto.post.PostListRow;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
@@ -14,18 +17,19 @@ import org.springframework.data.repository.query.Param;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("""
-        select p.id as id,
-               p.title as title,
-               coalesce(u.nickname, u.email) as authorName,
-               p.createdAt as createdAt,
-               p.updatedAt as updatedAt,
-               p.likeCount as likeCount,
-               p.commentCount as commentCount,
-               u.id as authorId
-        from Post p
-        join p.author u
+        select new com.example.board.dto.post.PostListRow(
+            p.id,
+            p.title,
+            coalesce(u.nickname, u.email),
+            p.createdAt,
+            p.updatedAt,
+            p.likeCount,
+            p.commentCount,
+            u.id
+        )
+        from Post p join p.author u
         """)
-    Page<PostSummaryProjection> findSummaries(Pageable pageable);
+    Page<PostListRow> findListRows(Pageable pageable);
 
     @Modifying
     @Query("update Post p set p.likeCount = p.likeCount + :delta where p.id = :postId")

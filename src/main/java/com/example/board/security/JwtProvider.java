@@ -25,6 +25,7 @@ public class JwtProvider {
     private final Key key;
     private final long accessTtl;
     private final long refreshTtl;
+    private boolean liked;
 
     public JwtProvider(@Value("${jwt.secret}") String secret,
                        @Value("${jwt.access-ttl-seconds}") long accessTtl,

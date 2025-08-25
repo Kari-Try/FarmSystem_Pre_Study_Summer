@@ -2,7 +2,6 @@ package com.example.board.service;
 
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostLike;
-import com.example.board.domain.post.PostSummaryProjection;
 import com.example.board.domain.user.User;
 import com.example.board.dto.post.*;
 import com.example.board.repository.post.PostLikeRepository;
@@ -14,13 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
 
-/**
- * 게시글 서비스
- * - create, update, delete: 로그인 유저 권한 확인
- * - list, detail: editable 여부 표시
- * - toggleLike: 좋아요 on/off
- */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -30,9 +24,9 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
 
-    /** 게시글 작성 */
+    /** 생성 */
     public Long create(PostCreateReq req) {
-        Long me = SecurityUtil.currentUserIdOrThrow(); // 로그인한 사용자 ID
+        Long me = SecurityUtil.currentUserIdOrThrow();
         User author = userRepository.findById(me).orElseThrow();
         Post post = Post.builder()
                 .author(author)
@@ -45,32 +39,47 @@ public class PostService {
         return postRepository.save(post).getId();
     }
 
-    /** 게시글 목록 조회 */
+    /** 목록 */
     public Page<PostListRes> list(Pageable pageable) {
         Long me = null;
         try { me = SecurityUtil.currentUserIdOrThrow(); } catch (Exception ignored) {}
-        Page<PostSummaryProjection> page = postRepository.findSummaries(pageable);
-        Long finalMe = me;
+
+        Page<PostListRow> page = postRepository.findListRows(pageable);
+
+        Set<Long> likedIds = Set.of();
+        if (me != null && !page.isEmpty()) {
+            List<Long> ids = page.stream().map(PostListRow::id).toList();
+            likedIds = new HashSet<>(postLikeRepository.findLikedPostIds(me, ids));
+        }
+
+        final Long finalMe = me;
+        final Set<Long> finalLikedIds = likedIds;
+
         return page.map(p -> PostListRes.builder()
-                .id(p.getId())
-                .title(p.getTitle())
-                .authorName(p.getAuthorName())
-                .createdAt(p.getCreatedAt())
-                .updatedAt(p.getUpdatedAt())
-                .likeCount(p.getLikeCount())
-                .commentCount(p.getCommentCount())
-                .editable(finalMe != null && p.getAuthorId().equals(finalMe))
+                .id(p.id())
+                .title(p.title())
+                .authorName(p.authorName())
+                .createdAt(p.createdAt())
+                .updatedAt(p.updatedAt())
+                .likeCount(p.likeCount())
+                .commentCount(p.commentCount())
+                .editable(finalMe != null && p.authorId().equals(finalMe))
+                .liked(finalMe != null && finalLikedIds.contains(p.id()))
                 .build());
     }
 
-    /** 게시글 상세 조회 */
+    /** 상세 */
     public PostDetailRes detail(Long postId) {
         Post p = postRepository.findById(postId).orElseThrow();
         Long me = null;
         try { me = SecurityUtil.currentUserIdOrThrow(); } catch (Exception ignored) {}
+
         String authorName = p.getAuthor().getNickname() != null
                 ? p.getAuthor().getNickname()
                 : p.getAuthor().getEmail();
+
+        boolean liked = (me != null) &&
+                postLikeRepository.findByPostIdAndUserId(postId, me).isPresent();
 
         return PostDetailRes.builder()
                 .id(p.getId())
@@ -83,10 +92,11 @@ public class PostService {
                 .likeCount(p.getLikeCount())
                 .commentCount(p.getCommentCount())
                 .editable(me != null && p.isOwnedBy(me))
+                .liked(liked)
                 .build();
     }
 
-    /** 게시글 수정 */
+    /** 수정 */
     public Long update(Long postId, PostUpdateReq req) {
         Long me = SecurityUtil.currentUserIdOrThrow();
         Post p = postRepository.findById(postId).orElseThrow();
@@ -95,7 +105,7 @@ public class PostService {
         return p.getId();
     }
 
-    /** 게시글 삭제 */
+    /** 삭제 */
     public void delete(Long postId) {
         Long me = SecurityUtil.currentUserIdOrThrow();
         Post p = postRepository.findById(postId).orElseThrow();
@@ -103,22 +113,27 @@ public class PostService {
         postRepository.delete(p);
     }
 
-    /** 좋아요 토글: true=좋아요됨, false=해제됨 */
-    public boolean toggleLike(Long postId) {
+    /** 좋아요 */
+    public Map<String, Object> setLike(Long postId, boolean like) {
         Long me = SecurityUtil.currentUserIdOrThrow();
         Post post = postRepository.findById(postId).orElseThrow();
         User user = userRepository.findById(me).orElseThrow();
 
-        return postLikeRepository.findByPostAndUser(post, user)
-                .map(existing -> {
-                    postLikeRepository.delete(existing);
-                    postRepository.updateLikeCount(postId, -1);
-                    return false; // 좋아요 취소
-                })
-                .orElseGet(() -> {
-                    postLikeRepository.save(PostLike.builder().post(post).user(user).build());
-                    postRepository.updateLikeCount(postId, +1);
-                    return true; // 좋아요 등록
-                });
+        Optional<PostLike> existing = postLikeRepository.findByPostIdAndUserId(postId, me);
+        boolean nowLiked = existing.isPresent();
+
+        if (like && !nowLiked) {
+            postLikeRepository.save(PostLike.builder().post(post).user(user).build());
+            postRepository.updateLikeCount(postId, +1);
+            nowLiked = true;
+        } else if (!like && nowLiked) {
+            postLikeRepository.delete(existing.get());
+            postRepository.updateLikeCount(postId, -1);
+            nowLiked = false;
+        }
+        int likeCount = post.getLikeCount(); // 엔티티 1차 캐시에 반영되어 있음
+        return Map.of("liked", nowLiked, "likeCount", likeCount);
     }
+
+
 }
