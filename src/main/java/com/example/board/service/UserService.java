@@ -80,4 +80,14 @@ public class UserService {
         tokenStore.revokeRefresh(userId);
         tokenStore.blacklistAccess(accessToken);
     }
+
+    //닉네임 변경
+    @Transactional
+    public void changeNickname(Long userId, String nickname) {
+       var u = userRepo.findById(userId).orElseThrow(UnauthorizedException::new);
+
+       u.setNickname(nickname);
+
+    }
+
 }

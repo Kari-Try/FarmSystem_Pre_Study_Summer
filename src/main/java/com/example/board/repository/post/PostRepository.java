@@ -21,13 +21,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             p.id,
             p.title,
             coalesce(u.nickname, u.email),
+            u.id,
             p.createdAt,
             p.updatedAt,
             p.likeCount,
-            p.commentCount,
-            u.id
+            p.commentCount
         )
         from Post p join p.author u
+        order by p.createdAt desc
         """)
     Page<PostListRow> findListRows(Pageable pageable);
 
@@ -38,4 +39,39 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("update Post p set p.commentCount = p.commentCount + :delta where p.id = :postId")
     int updateCommentCount(@Param("postId") Long postId, @Param("delta") int delta);
+
+    @Query("""
+    select new com.example.board.dto.post.PostListRow(
+      p.id,
+      p.title,
+      coalesce(p.author.nickname, p.author.email),
+      p.author.id,
+      p.createdAt,
+      p.updatedAt,
+      p.likeCount,
+      p.commentCount
+    )
+    from Post p
+    where p.author.id = :userId
+    order by p.createdAt desc
+    """)
+    Page<PostListRow> findListRowsByAuthorId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+    select new com.example.board.dto.post.PostListRow(
+      p.id,
+      p.title,
+      coalesce(p.author.nickname, p.author.email),
+      p.author.id,
+      p.createdAt,
+      p.updatedAt,
+      p.likeCount,
+      p.commentCount
+    )
+    from PostLike pl
+    join pl.post p
+    where pl.user.id = :userId
+    order by pl.createdAt desc
+    """)
+    Page<PostListRow> findListRowsLikedBy(@Param("userId") Long userId, Pageable pageable);
 }

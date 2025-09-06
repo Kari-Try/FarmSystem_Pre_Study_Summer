@@ -1,5 +1,6 @@
 package com.example.board.domain.post;
 
+import com.example.board.domain.common.BaseTimeEntity;
 import com.example.board.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +13,7 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"post_id", "user_id"}))
-public class PostLike {
+public class PostLike extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

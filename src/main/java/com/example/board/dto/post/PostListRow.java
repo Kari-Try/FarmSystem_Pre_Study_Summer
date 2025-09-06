@@ -7,9 +7,10 @@ public record PostListRow(
         Long id,
         String title,
         String authorName,
+        Long authorId,     // editable 계산용
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        int likeCount,
-        int commentCount,
-        Long authorId      // editable 계산용
+        Integer likeCount,
+        Integer commentCount
+
 ) {}
