@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Board API</title>
+    <style>
+        body{font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif;max-width:760px;margin:48px auto;line-height:1.55}
+        code{background:#f5f5f7;padding:.2em .4em;border-radius:6px}
+        a{color:#0a60ff;text-decoration:none}
+        .box{background:#fafafa;border:1px solid #eee;border-radius:12px;padding:16px}
+    </style>
+</head>
+<body>
+<h1>Board API 서버</h1>
+<p>이 페이지는 브라우저로 접속했을 때 보이는 랜딩 페이지입니다.</p>
+
+<div class="box">
+    <h3>빠른 체크</h3>
+    <ul>
+        <li>헬스체크: <a href="/actuator/health">/actuator/health</a></li>
+        <li>회원가입: <code>POST /auth/signup</code></li>
+        <li>로그인: <code>POST /auth/login</code></li>
+        <li>게시글 목록: <code>GET /api/posts</code> (공개로 열었을 때만)</li>
+    </ul>
+</div>
+
+<p style="margin-top:24px">API는 <code>curl</code> 또는 Postman 등으로 호출하세요.</p>
+</body>
+</html>
